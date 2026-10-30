@@ -1,0 +1,104 @@
+/**
+ * Site Pulse — Frontend API Client Module
+ * Centralizes all HTTP communication with Express backend.
+ */
+
+const SitePulseAPI = (() => {
+    function getBaseUrl() {
+        const config = window.SITE_PULSE_CONFIG || {};
+        return config.API_BASE_URL || 'http://localhost:3000';
+    }
+
+    async function request(endpoint, options = {}) {
+        const url = `${getBaseUrl()}${endpoint}`;
+        const token = SitePulseAuth.getAccessToken();
+
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const config = {
+            ...options,
+            headers
+        };
+
+        let response = null;
+        try {
+            response = await fetch(url, config);
+        } catch (netErr) {
+            const err = new Error('Unable to connect to backend server. Please check network connection.');
+            err.statusCode = 0;
+            err.code = 'NETWORK_ERROR';
+            throw err;
+        }
+
+        let body = null;
+        const text = await response.text();
+        try {
+            body = text ? JSON.parse(text) : {};
+        } catch (e) {
+            body = { message: text };
+        }
+
+        if (!response.ok) {
+            const errorMsg = (body && body.error && body.error.message) || body.message || `HTTP ${response.status} Error`;
+            const err = new Error(errorMsg);
+            err.statusCode = response.status;
+            err.code = (body && body.error && body.error.code) || 'API_ERROR';
+            
+            // Handle 401 Session Expiration
+            if (response.status === 401) {
+                document.dispatchEvent(new CustomEvent('sitepulse:unauthorized', { detail: err }));
+            }
+
+            throw err;
+        }
+
+        return body;
+    }
+
+    /**
+     * GET /me — Authenticated user profile and organization details
+     */
+    async function getMe() {
+        return request('/me');
+    }
+
+    /**
+     * GET /portfolio — Risk-sorted executive portfolio list
+     */
+    async function getPortfolio(date = '2026-10-01') {
+        const dateParam = date ? `?date=${encodeURIComponent(date)}` : '';
+        return request(`/portfolio${dateParam}`);
+    }
+
+    /**
+     * GET /projects/:id/dashboard — Complete metrics and analytics for a project
+     */
+    async function getProjectDashboard(projectId, date = '2026-10-01') {
+        const dateParam = date ? `?date=${encodeURIComponent(date)}` : '';
+        return request(`/projects/${projectId}/dashboard${dateParam}`);
+    }
+
+    /**
+     * POST /projects/:id/updates — Create or update daily update for a trade
+     */
+    async function createDailyUpdate(projectId, updateData) {
+        return request(`/projects/${projectId}/updates`, {
+            method: 'POST',
+            body: JSON.stringify(updateData)
+        });
+    }
+
+    return {
+        getMe,
+        getPortfolio,
+        getProjectDashboard,
+        createDailyUpdate
+    };
+})();

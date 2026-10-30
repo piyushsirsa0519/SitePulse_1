@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Pulse — Live Project Tracker</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="app-layout">
+        <!-- Top Navigation Bar -->
+        <header class="top-navbar">
+            <div class="nav-container">
+                <div class="brand-wrapper">
+                    <div class="brand-logo">
+                        <i class="fa-solid fa-compass-drafting logo-icon"></i>
+                        <span class="pulse-dot"></span>
+                    </div>
+                    <div class="brand-text">
+                        <div class="brand-header-row">
+                            <span class="mygenie-pill-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> MyGenie</span>
+                            <span class="brand-title">Site<span class="brand-highlight">Pulse</span></span>
+                        </div>
+                        <span class="brand-subtitle">Apex Retail Fitouts — Executive Construction Suite</span>
+                    </div>
+                </div>
+
+                <div class="nav-center">
+                    <div class="nav-status-badge">
+                        <span class="status-indicator online"></span>
+                        <span class="status-label">Live Tracker Mode</span>
+                    </div>
+                </div>
+
+                <div class="nav-right">
+                    <div class="time-display" id="live-clock">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="clock-time">--:--:--</span>
+                    </div>
+
+                    <!-- User Profile & Sign Out Badge (Visible when logged in) -->
+                    <div class="user-profile-badge" id="user-profile-badge" style="display: none;">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <span id="user-name-display">User</span>
+                        <span class="user-role-pill" id="user-role-display">admin</span>
+                    </div>
+                    <button class="icon-btn logout-btn" id="logout-btn" title="Sign Out" style="display: none;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+
+                    <button class="icon-btn theme-toggle" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body Content -->
+        <main class="main-content" id="main-content">
+            <!-- Project Selection & Filter Bar -->
+            <section class="project-selector-bar">
+                <div class="selector-header">
+                    <div class="selector-title">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Active Retail Store Project</span>
+                    </div>
+                    
+                    <div class="selector-actions">
+                        <!-- Post Daily Update Button (Visible to Authorized Roles) -->
+                        <button id="open-daily-update-btn" class="action-btn-primary" style="display: none;">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>Post Daily Update</span>
+                        </button>
+
+                        <!-- Mobile Dropdown Fallback / Alternative -->
+                        <div class="dropdown-wrapper">
+                            <i class="fa-solid fa-store select-icon"></i>
+                            <select id="project-dropdown" class="project-select-input" aria-label="Select Retail Store Project">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop / Tablet Tab Selector Pills -->
+                <div class="project-tabs-container" id="project-tabs">
+                    <!-- Tab buttons populated dynamically -->
+                </div>
+            </section>
+
+            <!-- Selected Project Overview Card Section -->
+            <section class="overview-section" id="project-overview-container">
+                <!-- Dynamically rendered project overview card -->
+            </section>
+
+            <!-- Trades Breakdown Table Section -->
+            <section class="trades-section" id="trades-breakdown-container">
+                <!-- Dynamically rendered trades breakdown table -->
+            </section>
+
+            <!-- Bottleneck Forecast & Action Recommendation Section -->
+            <section class="analysis-section" id="bottleneck-analysis-container">
+                <!-- Dynamically rendered bottleneck projection and recommendation -->
+            </section>
+
+            <!-- Global Executive Portfolio View Section (Always Visible) -->
+            <section class="portfolio-section" id="portfolio-view-container">
+                <!-- Dynamically rendered portfolio view summary -->
+            </section>
+        </main>
+
+        <!-- App Footer Disclaimer Note -->
+        <footer class="app-footer">
+            <div class="footer-container">
+                <p class="footer-disclaimer-note">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Note: productivity assumptions are illustrative and would be calibrated with MyGenie's real project data in a pilot.</span>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Login View Modal Overlay -->
+    <div id="login-modal" class="login-modal-backdrop" style="display: none;">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="brand-logo"><i class="fa-solid fa-compass-drafting logo-icon"></i></div>
+                <h2>Sign in to <span>SitePulse</span></h2>
+                <p>Apex Retail Fitouts — Executive Construction Suite</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="executive@apexfitouts.com" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <div id="login-error-alert" class="login-error-alert" style="display: none;"></div>
+                <button type="submit" id="login-submit-btn" class="login-btn">
+                    <span>Sign In</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <div class="login-dev-hint">
+                <i class="fa-solid fa-info-circle"></i> Dev Demo Credentials: <code>executive@apexfitouts.com</code> / <code>password</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Site Update Modal Overlay -->
+    <div id="daily-update-modal" class="modal-backdrop" style="display: none;">
+        <div class="update-modal-card">
+            <div class="update-modal-header">
+                <div class="update-modal-title">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <div>
+                        <h3 id="update-modal-project-title">Post Daily Site Update</h3>
+                        <p class="update-modal-subtitle">Record today's trade execution progress and on-site workforce headcount</p>
+                    </div>
+                </div>
+                <div class="update-date-wrapper">
+                    <label for="update-date-input"><i class="fa-regular fa-calendar"></i> Log Date:</label>
+                    <input type="date" id="update-date-input" class="update-date-input">
+                </div>
+                <button class="icon-btn modal-close-btn" id="close-update-modal-btn" title="Close Modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="update-status-alert" class="update-status-alert" style="display: none;"></div>
+
+            <div class="update-modal-body">
+                <div id="update-trades-list" class="update-trades-list">
+                    <!-- Populated dynamically with trade update rows -->
+                </div>
+            </div>
+
+            <div class="update-modal-footer">
+                <button id="cancel-update-btn" class="btn-secondary">Cancel</button>
+                <button id="submit-all-updates-btn" class="btn-primary">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Submit All Trade Updates</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Core Scripts -->
+    <script src="config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
